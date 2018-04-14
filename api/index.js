@@ -37,12 +37,6 @@ export default class APIClient {
         return response.json()
     }
 
-    static async fetchAvatar(gid: number): Promise<string> {
-        const response = await fetch(`${BASE_URL}/user/${gid}/avatar`, BASE_OPTIONS)
-
-        return response.json()
-    }
-
     static async addContacts(gids: Array<number>): Promise<Array<UserInfo>> {
         return fetch(`${BASE_URL}/contacts`, {...BASE_OPTIONS,
             method: 'PUT',
