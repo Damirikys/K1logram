@@ -1,0 +1,4 @@
+[lints]
+all=warn
+untyped-type-import=error
+sketchy-null-bool=off

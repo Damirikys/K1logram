@@ -1,10 +1,17 @@
 {
-  "extends": "xo/esnext",
+  "extends": ["plugin:react/recommended", "xo/esnext"],
+  "plugins": ["flowtype"],
   "parser": "babel-eslint",
   "rules": {
-    "semi": 0,
-    "no-mixed-spaces-and-tabs": 0,
-    "indent": ["error", 4],
-    "object-curly-spacing": 0
+    "semi": [2, "never"],
+    "new-cap": 0,
+    "strict": "error",
+    "indent": ["error", 4, { "SwitchCase": 1 }],
+    "object-curly-spacing": [0, "error"],
+    "no-duplicate-imports": "error",
+    "lines-between-class-members": 0,
+    "no-return-assign": 0,
+    "no-case-declarations": 0,
+    "operator-linebreak": "off"
   }
 }

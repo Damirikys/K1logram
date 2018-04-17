@@ -1,0 +1,38 @@
+.login_page {
+    margin-top: 10%;
+    margin-left: 50%;
+    transform: translateX(-50%); 
+    border: 2px solid black;
+    height: 30%;
+    width: 40%;
+}
+
+.main_login {
+    width: 200px;
+    height: 70px;
+    font-size: 2em;
+    text-decoration: none;
+    color: black;
+}
+
+.main {
+    text-align: center;
+}
+
+.footer {
+    margin-top: 7%;
+    width: 100%;
+}
+
+.footer_copyright {
+    font-size: 1.5em;
+    display: inline;
+}
+.footer_github_link {
+    font-size: 1.5em;
+    float: right;
+}
+
+.footer_github_link {
+    text-decoration: none;
+}
