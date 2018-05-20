@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import LinesEllipsis from 'react-lines-ellipsis'
 import MarkdownRenderer from 'react-markdown-renderer'
+import ForwardIcon from 'react-icons/lib/fa/mail-forward'
 import HrundelIcon from 'react-icons/lib/io/social-octocat'
 import ReactTooltip from 'react-tooltip'
 import EmojiPicker from './EmojiPicker'
@@ -11,7 +12,8 @@ import avatarByGid from '../utils/avatarByGid'
 import { metaParse } from '../utils/metaparse'
 import { SHOW_PROFILE_MODAL } from '../actions/uiActions'
 import { statuses as status } from '../reducers/messagesReducer'
-import { EDIT_ACTION } from '../actions/messagesActions'
+import { EDIT_ACTION, FORWARD_ACTION, FORWARD_RESET } from '../actions/messagesActions'
+import ForwardedMessage from './ForwardedMessage'
 
 type Props = {
     gid: number,
@@ -19,9 +21,13 @@ type Props = {
     modified: number,
     message: Message,
     mine: Boolean,
+    forwarded: Message[],
     showProfile: Function,
     onLoad: Function,
-    updateMessage: Function
+    updateMessage: Function,
+    onSelectMessage: Function,
+    forward: Function,
+    forwardReset: Function
 }
 
 type State = {
@@ -37,9 +43,38 @@ const markdownOptions = {
 }
 
 class MessageItem extends React.Component<Props, State> {
-    state = { metadata: [] }
+    state = { metadata: [], selected: false }
+
+    async componentDidMount() {
+        const response = await metaParse(this.props.message)
+
+        if (response) {
+            this.setState({ metadata: response }, this.props.onLoad)
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.forwardReply && this.props.forwarded.length > 0) {
+            this.props.forwardReset()
+        }
+    }
 
     showEmojiPicker = () => this.emojiPicker.toggle()
+
+    selectMessage = () => {
+        const selected = !this.state.selected
+
+        this.setState({ selected })
+
+        if (this.props.onSelectMessage) {
+            this.props.onSelectMessage(this.props.message, selected)
+        }
+    }
+
+    replyTo = () => {
+        this.props.forward(this.props.message)
+        this.forwardReply = true
+    }
 
     reactionInfo = emoji => {
         const { message, users } = this.props
@@ -73,14 +108,6 @@ class MessageItem extends React.Component<Props, State> {
         }
     }
 
-    async componentDidMount() {
-        const response = await metaParse(this.props.message)
-
-        if (response) {
-            this.setState({ metadata: response }, this.props.onLoad)
-        }
-    }
-
     renderMetadata = (data, index) => (
         <a key={index} href={data.url} target="_blank">
             <div className="link-metadata">
@@ -106,19 +133,31 @@ class MessageItem extends React.Component<Props, State> {
         </a>
     )
 
+    renderStaticGeomap = ({ latitude, longitude }) => {
+        return (
+            <a onClick={e => e.stopPropagation()} target="_blank" href={`https://yandex.ru/maps/?ll=${longitude},${latitude}&z=17`}>
+                <img onLoad={this.props.onLoad} className="message-geomap" src={`https://static-maps.yandex.ru/1.x/?ll=${longitude},${latitude}&size=300,170&z=16&l=map&pt=${longitude},${latitude},comma`}/>
+            </a>
+        )
+    }
+
     render() {
         const { message, users, modified } = this.props
-        const { metadata } = this.state
+        const { metadata, selected } = this.state
 
         const author: UserInfo = users[message.authorGid] || {}
         const reactions: Object = Object.keys(message.reactions || {})
+        const messageClassName = `${this.props.mine ? 'message message-right' : 'message'}${selected ? ' message-selected' : ''}`
         return (
             <div
                 style={{ opacity: message.status === status.PENDING ? 0.5 : 1 }}
-                className={this.props.mine ? 'message message-right' : 'message'}
+                className={messageClassName}
             >
-                <div className="message__avatar" onClick={() => this.props.showProfile(author)}>
-                    <img src={avatarByGid(message.authorGid, modified)} title={author.name}/>
+                <div className="message__avatar">
+                    <img onClick={() => this.props.showProfile(author)}
+                        src={avatarByGid(message.authorGid, modified)}
+                        title={author.name}
+                    />
                 </div>
                 <div className="message-box__body">
                     {reactions.length > 0 && (
@@ -137,7 +176,7 @@ class MessageItem extends React.Component<Props, State> {
                         </div>
                     )}
                     <div className="message-wrapper">
-                        <div className="message-box">
+                        <div className="message-box" onClick={this.selectMessage}>
                             {message.text && (
                                 <div className="message-box__text">
                                     <MarkdownRenderer
@@ -156,8 +195,17 @@ class MessageItem extends React.Component<Props, State> {
                                     {metadata.map(this.renderMetadata)}
                                 </div>
                             )}
+                            {message.forwarded.length > 0 && (
+                                <div className="message_box__forwarded">
+                                    {message.forwarded.map(message => (
+                                        <ForwardedMessage key={message._id} message={message}/>
+                                    ))}
+                                </div>
+                            )}
+                            {message.geodata && this.renderStaticGeomap(message.geodata)}
                         </div>
-                        <span className="message-emoji-button" onClick={this.showEmojiPicker}><HrundelIcon/></span>
+                        <span className="message-emoji-button"><HrundelIcon onClick={this.showEmojiPicker} /></span>
+                        <span className="message-emoji-button"><ForwardIcon onClick={this.replyTo}/></span>
                         <div className="message-emoji-picker">
                             <EmojiPicker
                                 onSelect={emoji => this.addReaction(emoji.native)}
@@ -174,8 +222,11 @@ class MessageItem extends React.Component<Props, State> {
 export default connect(state => ({
     gid: state.session.user.gid,
     users: state.chatsMembers,
-    modified: state.session.modified
+    modified: state.session.modified,
+    forwarded: state.forwarded
 }), dispatch => ({
     showProfile: payload => dispatch({ type: SHOW_PROFILE_MODAL, payload }),
-    updateMessage: payload => dispatch({ type: EDIT_ACTION, payload })
+    updateMessage: payload => dispatch({ type: EDIT_ACTION, payload }),
+    forward: message => dispatch({ type: FORWARD_ACTION, payload: [message] }),
+    forwardReset: () => dispatch({ type: FORWARD_RESET })
 }))(MessageItem)

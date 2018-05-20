@@ -72,7 +72,7 @@ export const deleteMessage = async ({ body }: {
     body: Message
 }, res: Object) => {
     try {
-        //await MessagesAPI.delete(body)
+        await MessagesAPI.delete(body)
 
         return res.sendStatus(OK)
     } catch (e) {

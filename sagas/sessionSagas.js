@@ -5,7 +5,7 @@ import * as userActions from '../actions/userActions'
 import * as contactsActions from '../actions/contactsActions'
 import * as chatsActions from '../actions/chatsActions'
 
-import { socket } from '../components/Body'
+import { socketClient } from '../components/Body'
 
 import { types } from '../server/models/SocketEvent'
 import { dispatch } from '../store'
@@ -50,6 +50,8 @@ const socketInit = function * ({ fromSocket, payload: profile }) {
     if (fromSocket) {
         return
     }
+
+    const socket = socketClient()
 
     socket.emit('connect_auth', profile)
 

@@ -157,6 +157,25 @@ export const uploadAvatar = async ({ params: { gid }, files }: {
         await UserAPI.uploadAvatar(gid, files)
         return res.sendStatus(OK)
     } catch (e) {
-        return res.status(INTERNAL_SERVER_ERROR)
+        return res.sendStatus(INTERNAL_SERVER_ERROR)
     }
 }
+
+export const attachFcmToken = async ({ user, params: { token }}: {
+    user: UserProfile,
+    params: { token: string }
+}, res: Object) => {
+    try {
+        const { tokens } = await UserAPI.getPushTokens(user.user.gid)
+        await UserAPI.updatePushTokens(user.user.gid, [...new Set([...tokens, token])])
+        return res.sendStatus(OK)
+    } catch (e) {
+        try {
+            await UserAPI.updatePushTokens(user.user.gid, [token])
+            return res.sendStatus(OK)
+        } catch (e1) {
+            return res.sendStatus(INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+

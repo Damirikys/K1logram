@@ -34,7 +34,11 @@ export class ChatItem extends React.Component<Props> {
                 </p>
                 <p className="menu-row__message">
                     {message && <img className="menu-row__message_author" src={avatarByGid(message.authorGid, modified)}/>}
-                    {message ? <span>{message.text || (message.imgUrl && '*изображение*')}</span> : <i>сообщений нет</i> }
+                    {message
+                        ? <span>{message.text ||
+                                (message.imgUrl && '*изображение*') ||
+                                (message.forwarded.length > 0 && '*пересланные сообщения*')
+                        }</span> : <i>сообщений нет</i> }
                 </p>
             </div>
         )

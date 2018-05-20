@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-
+import { OK } from 'http-status-codes'
 import Modal from 'react-responsive-modal'
 import { Dot } from 'react-animated-dots'
 
@@ -24,19 +24,20 @@ type State = {
 }
 
 class UserProfileModal extends React.Component<Props, State> {
-    state = { uploading: false }
+    state = { uploading: false, message: null }
 
     onChange = () => this.inputFile.click()
 
     onSelect = async e => {
-        this.setState({ uploading: true })
+        this.setState({ uploading: true, message: null })
 
-        try {
-            await API.uploadAvatar(this.props.gid, e.target.files[0])
-            this.setState({ uploading: false })
+        const response = await API.uploadAvatar(this.props.gid, e.target.files[0])
+
+        if (response.status === OK) {
+            this.setState({ uploading: false, message: null })
             this.props.uploadSuccess()
-        } catch (e) {
-            this.setState({ uploading: false })
+        } else {
+            this.setState({ uploading: false, message: 'Максимальный размер 250kb' })
         }
     }
 
@@ -50,7 +51,7 @@ class UserProfileModal extends React.Component<Props, State> {
         return (
             <Modal onClose={this.props.closeModal} open={true}>
                 <div className="modal-content">
-                    <p className="modal-content_title">{user.name}</p>
+                    <p className="modal-content_title">{user.name || 'Безымянный пользователь'}</p>
                     <div className="modal-user-profile">
                         {user.gid === this.props.gid ? (
                             <div style={{ position: 'relative' }}>
@@ -59,6 +60,7 @@ class UserProfileModal extends React.Component<Props, State> {
                                     title="Изменить аватарку"
                                     className="modal-user-profile__avatar hoverable"
                                     src={avatarByGid(user.gid, this.props.modified)}/>
+                                {this.state.message && <p className="modal-user-profile__avatar-message">{this.state.message}</p>}
                                 <input
                                     ref={ref => this.inputFile = ref}
                                     type="file"

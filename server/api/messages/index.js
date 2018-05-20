@@ -9,6 +9,7 @@ import { messageModel } from '../mongodb'
 import SocketEvent, { types as socketEventTypes } from '../../models/SocketEvent'
 import rootPath from 'app-root-path'
 
+import NotificationAPI from '../notifications'
 import socketManager from '../../socket'
 
 type OptionsType = {
@@ -26,6 +27,8 @@ export default class MessagesAPI {
             socketManager.sendEvent(`chat_${message.chatId}`,
                 new SocketEvent(socketEventTypes.CHAT_EVENT, new Event(eventTypes.NEW_MESSAGE, message))
             )
+
+            NotificationAPI.sendMessageNotification(message)
         })
     }
 
@@ -37,9 +40,9 @@ export default class MessagesAPI {
         })
     }
 
-    // TODO: delete message
-    // static delete(message: Message): Promise<void> {
-    // }
+    static delete(message: Message): Promise<void> {
+        return message // TODO delete
+    }
 
     static async getMeta(targetUrl: string): Promise<Object> {
         const { body: html, url } = await got(targetUrl)
@@ -52,6 +55,6 @@ export default class MessagesAPI {
         const optionalObj = { fileName: `${time}`, type: 'jpg' }
         base64ToImage(file, path, optionalObj)
 
-        return `/static/images/${time}.jpg`
+        return `/images/${time}.jpg`
     }
 }

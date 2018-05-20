@@ -19,7 +19,7 @@ type Props = {
 }
 
 export default class Main extends React.Component<Props> {
-    static async getInitialProps({ req }) {
+    static getInitialProps({ req }) {
         return { session: req.user }
     }
 
@@ -39,8 +39,12 @@ export default class Main extends React.Component<Props> {
                         <meta charSet="utf-8" />
                         <meta name="viewport" content="width=device-width, initial-scale=1" />
                         <title>Kilogram Messenger</title>
-                        <link rel="stylesheet" href="/static/styles/main.css"/>
-                        <link rel="stylesheet" href="/static/styles/emoji.css"/>
+                        <link rel="shortcut icon" type="image/png" href="/img/kettlebell.png"/>
+                        <link rel="manifest" href="/manifest.json"/>
+                        <link rel="stylesheet" href="/styles/main.css"/>
+                        <link rel="stylesheet" href="/styles/emoji.css"/>
+                        <script type="text/javascript" src="//www.gstatic.com/firebasejs/3.6.8/firebase.js"/>
+                        <script type="text/javascript" src="/push-subscribe.js"/>
                     </Head>
                     <Loader body={(
                         <Body

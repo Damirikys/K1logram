@@ -3,6 +3,8 @@ import SocketEvent from '../models/SocketEvent'
 import computeId from '../utils/cantor-pairing'
 
 class SocketManager {
+    clients = {}
+
     init(io) {
         this.io = io
         this.io.on('connection', socket => {
@@ -17,8 +19,16 @@ class SocketManager {
                 } catch (e) {
                     console.info(e)
                 }
+
+                this.clients[client.user.gid] = true
+
+                socket.on('disconnect', () => this.clients[client.user.gid] = false)
             })
         })
+    }
+
+    hasClient(gid: number) {
+        return this.clients[gid]
     }
 
     sendEvent(target: string, event: SocketEvent) {

@@ -4,7 +4,7 @@ import Identicon from 'identicon.js'
 
 import UserProfile from '../../models/UserProfile'
 import SocketEvent, { types } from '../../models/SocketEvent'
-import { userModel, avatarsModel } from '../mongodb'
+import { userModel, avatarsModel, pushTokensModel } from '../mongodb'
 
 import socketManager from '../../socket'
 
@@ -50,5 +50,13 @@ export default class UserAPI {
             _id: Number(gid),
             data: files.avatar.data.toString('base64')
         })
+    }
+
+    static getPushTokens(gid: number): Promise<Object> {
+        return pushTokensModel.get(gid)
+    }
+
+    static updatePushTokens(gid: number, tokens: string[]): Promise<void> {
+        return pushTokensModel.updateOrCreate(gid, { _id: gid, tokens })
     }
 }

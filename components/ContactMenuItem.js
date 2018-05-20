@@ -30,10 +30,14 @@ class ContactMenuItem extends React.Component<Props> {
                 <div onClick={this.onRemoveClick} className="menu-row__remove"><RemoveIcon/></div>
                 <div className="menu-row__contact">
                     <p className="menu-row__title">
-                        <span>{contact.name}</span>
+                        <span>{contact.name || 'Безымянный пользователь'}</span>
                     </p>
                     <p className="menu-row__message">
-                        {message ? <span>{message.text || (message.imgUrl && '*изображение*')}</span> : <i>сообщений нет</i>}
+                        {message
+                            ? <span>{message.text ||
+                                    (message.imgUrl && '*изображение*') ||
+                                    (message.forwarded.length > 0 && '*пересланные сообщения*')}
+                            </span> : <i>сообщений нет</i>}
                     </p>
                 </div>
             </div>

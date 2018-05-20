@@ -1,5 +1,7 @@
 export const REHYDRATE_ACTION = 'persist/REHYDRATE'
 
+export const SWITCH_THEME_ACTION = 'view.SWITCH_THEME_ACTION'
+
 export const SELECT_CHAT_ACTION = 'view.SELECT_CHAT_ACTION'
 
 export const SHOW_CHAT_CREATE_MODAL = 'view.SHOW_CHAT_CREATE_MODAL'

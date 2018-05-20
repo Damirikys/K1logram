@@ -1,0 +1,129 @@
+html, body {
+    background: #2f363e;
+}
+
+.main {
+    background: #47515a;
+}
+
+.profile-card {
+    background: #515861;
+}
+
+.menu__chats_divider {
+    background-color: #474f58;
+    color: #93a9be;
+    border-left: 2px solid #323e4a;
+    border-bottom: 1px solid #3a414a;
+}
+
+.menu__row {
+    border-bottom: 1px solid #535b65;
+}
+
+.menu-row__title {
+    color: #dadada;
+}
+
+.menu-row__message {
+    color: #9eb0c5;
+}
+
+.menu__row:hover, .menu__row:active {
+    background: #545e6a;
+}
+
+.profile-card__body {
+    color: #b1bcc7;
+}
+
+.menu__row-selected, .menu__row-selected:hover {
+    background: #3a424a;
+}
+
+.chat-info {
+    background: #3a424a;
+}
+
+.chat-info__name {
+    color: #919eab;
+}
+
+.messages {
+    background: #323940;
+}
+
+.message-form {
+    background: #444c54;
+}
+
+.button-send {
+    background: #434c53;
+}
+
+.message-box {
+    background: #565f69;
+    color: #bdc8d4;
+}
+
+.message-right .message-box {
+    background-color: #272d31;
+}
+
+.forwarded {
+    background: #394148;
+    border-bottom: 1px solid #4c565f;
+}
+
+.forwarded__message p {
+    color: #8c9aa5;
+}
+
+.message-selected, .message-selected:hover {
+    background: #3a424a;
+}
+
+.chat-info__controls p {
+    color: #c2c7cc;
+    border: 1px solid #30373e;
+}
+
+.message-form__input {
+    color: #efeeee;
+}
+
+.message-forwarded {
+    border-left: 2px solid #515c67;
+    background: #373f46;
+}
+
+.message-forwarded__body {
+    color: #abbccc;
+}
+
+.c013 {
+    background: #30363a;
+}
+
+.modal-content_title {
+    color: #90979e;
+    border-bottom: 1px solid #434b52;
+}
+
+.button-default {
+    background: #444c52;
+    color: #848f9a;
+}
+
+.input-text {
+    border-bottom: 1px solid #41474c;
+    color: #b5c5d4;
+}
+
+.modal-content {
+    color: #8b969e;
+}
+
+.user-info {
+    border-bottom: 1px solid #2a2e31;
+}

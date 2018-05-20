@@ -15,7 +15,7 @@ class Loader extends React.Component<Props> {
         return (
             <div>
                 <span className="body-loader">
-                    <img src="/static/img/ripple.svg" />
+                    <img src="/img/ripple.svg" />
                     <p className="body-loader__title">k1logram</p>
                 </span>
             </div>

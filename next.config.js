@@ -6,11 +6,13 @@ const Uglify = require('uglifyjs-webpack-plugin')
 
 module.exports = withOffline({
     staticFileGlobs: [
-        '**/.next/bundles/pages/*.js',
-        '**/.next/chunks/**/*.js',
-        '/manifest.json',
-        '**/.next/app.js',
-        '/'
+        '**/.next/bundles/**/*.js',
+        '/**/*.jpg',
+        '/**/*.png',
+        '/**/*.svg',
+        '/**/*css',
+        '/*.json',
+        '/*.js'
     ],
     webpack: config => {
         config.plugins = config.plugins.filter(plugin => plugin.constructor.name !== 'UglifyJsPlugin')

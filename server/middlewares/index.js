@@ -9,6 +9,7 @@ import fileUpload from 'express-fileupload'
 
 export default app => app
     .use(express.static('.next'))
+    .use(express.static('static'))
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: true }))
     .use(fileUpload({
@@ -18,7 +19,8 @@ export default app => app
     .use(cookieParser())
     .use(cookieSession({
         name: 'session',
-        secret: generateToken(16)
+        secret: generateToken(16),
+        maxAge: 365 * 24 * 60 * 60 * 1000
     }))
     .use(passport.initialize())
     .use(passport.session())

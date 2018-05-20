@@ -21,7 +21,7 @@ export default (): Store => {
 
     reduxStore = offline({ ...defaultConfig,
         persistOptions: {
-            blacklist: ['ui']
+            blacklist: ['ui', 'forwarded']
         }
     })(createStore)(rootReducer, middleware)
 
