@@ -1,30 +1,34 @@
 export const FETCH_ALL_ACTION = 'chats.FETCH_ALL_ACTION'
+export const FETCH_ALL_REQUEST = 'chats.FETCH_ALL_REQUEST'
 export const FETCH_ALL_SUCCESS = 'chats.FETCH_ALL_SUCCESS'
 
 export const FETCH_ACTION = 'chats.FETCH_ACTION'
+export const FETCH_REQUEST = 'chats.FETCH_REQUEST'
 export const FETCH_SUCCESS = 'chats.FETCH_SUCCESS'
 
 export const CREATE_ACTION = 'chats.CREATE_ACTION'
-export const CREATE_SUCCESS = 'chats.CREATE_SUCCESS'
+export const CREATE_REQUEST = 'chats.CREATE_REQUEST'
 export const CREATE_FAILED = 'chats.CREATE_FAILED'
 
 export const REMOVE_ACTION = 'chats.REMOVE_ACTION'
+export const REMOVE_REQUEST = 'chats.REMOVE_REQUEST'
 export const REMOVE_SUCCESS = 'chats.REMOVE_SUCCESS'
 export const REMOVE_FAILED = 'chats.REMOVE_FAILED'
 
 export const UPDATE_ACTION = 'chats.UPDATE_ACTION'
-export const UPDATE_SUCCESS = 'chats.UPDATE_SUCCESS'
+export const UPDATE_REQUEST = 'chats.UPDATE_REQUEST'
 export const UPDATE_FAILED = 'chats.UPDATE_FAILED'
 
 export const FETCH_MEMBERS_ACTION = 'chats.FETCH_MEMBERS_ACTION'
+export const FETCH_MEMBERS_REQUEST = 'chats.FETCH_MEMBERS_REQUEST'
 export const FETCH_MEMBERS_SUCCESS = 'chats.FETCH_MEMBERS_SUCCESS'
 
 export const ADD_MEMBER_ACTION = 'chats.ADD_MEMBER_ACTION'
-export const ADD_MEMBER_SUCCESS = 'chats.ADD_MEMBER_SUCCESS'
+export const ADD_MEMBER_REQUEST = 'chats.ADD_MEMBER_REQUEST'
 export const ADD_MEMBER_FAILED = 'chats.ADD_MEMBER_FAILED'
 
 export const REMOVE_MEMBER_ACTION = 'chats.REMOVE_MEMBER_ACTION'
-export const REMOVE_MEMBER_SUCCESS = 'chats.REMOVE_MEMBER_SUCCESS'
+export const REMOVE_MEMBER_REQUEST = 'chats.REMOVE_MEMBER_REQUEST'
 export const REMOVE_MEMBER_FAILED = 'chats.REMOVE_MEMBER_FAILED'
 
 export const SOCKET_UPDATE_ACTION = 'chats.SOCKET_UPDATE_ACTION'

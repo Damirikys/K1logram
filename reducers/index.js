@@ -8,6 +8,8 @@ import chatsReducer from './chatsReducer'
 import messagesReducer from './messagesReducer'
 import chatsMembersReducer from './chatsMembersReducer'
 import uiReducer from './uiReducer'
+import forwardedReducer from './forwardedReducer'
+import themeReducer from './themeReducer'
 
 export default combineReducers({
     session: sessionReducer,
@@ -15,5 +17,7 @@ export default combineReducers({
     chats: chatsReducer,
     chatsMembers: chatsMembersReducer,
     messages: messagesReducer,
-    ui: uiReducer
+    ui: uiReducer,
+    forwarded: forwardedReducer,
+    theme: themeReducer
 })

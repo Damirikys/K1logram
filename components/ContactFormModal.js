@@ -8,6 +8,7 @@ import * as contactsActions from '../actions/contactsActions'
 import * as uiActions from '../actions/uiActions'
 
 import UserInfo from '../server/models/UserInfo'
+import noavatar from '../utils/avatarByGid'
 
 type Props = {
     visible: boolean,
@@ -16,25 +17,23 @@ type Props = {
 }
 
 type State = {
-    user: UserInfo,
-    message: string
+    users: UserInfo[]
 }
 
 class ContactFormModal extends React.Component<Props, State> {
-    state = { user: null, message: null }
+    state = { users: [] }
 
-    onUserSearch = () => {
-        const gid: number = Number(this.inputGithubID.value)
+    onSearch = async () => {
+        const query: string = this.inputName.value.trim()
 
-        if (gid) {
-            API.fetchContacts([gid])
-                .then(response => this.setState({ user: response[gid], message: null }))
-                .catch(() => this.setState({ message: 'Пользователь не найден' }))
+        if (query) {
+            const users: UserInfo[] = await API.findContacts(this.inputName.value.trim())
+            this.setState({ users })
         }
     }
 
-    onContactAdd = () => {
-        this.props.addContact(this.state.user)
+    addContact = user => {
+        this.props.addContact(user)
         this.props.closeModal()
     }
 
@@ -46,28 +45,27 @@ class ContactFormModal extends React.Component<Props, State> {
         return (
             <Modal onClose={this.props.closeModal} open={true}>
                 <div className="modal-content">
-                    <p className="modal-content_title">Новый контакт</p>
+                    <p className="modal-content_title">Поиск контактов</p>
                     <div>
                         <input
-                            type="number"
-                            ref={ref => this.inputGithubID = ref}
-                            placeholder="Введите Github ID..."
+                            type="text"
+                            ref={ref => this.inputName = ref}
+                            onChange={this.onSearch}
+                            placeholder="Введите имя пользователя"
                             className="input-text"
                         />
                     </div>
-                    <div style={{ float: 'right', marginTop: '6px' }}>
-                        <button onClick={this.onUserSearch} className="button button-default">Найти</button>
-                    </div>
-                    {this.state.message && (
-                        <p>{this.state.message}</p>
-                    )}
 
-                    {this.state.user && (
-                        <div>
-                            <p>{JSON.stringify(this.state.user, null, 2)}</p>
-                            <button onClick={this.onContactAdd}>Добавить</button>
+                    {this.state.users.map(user => (
+                        <div className="user-info" key={user.gid}>
+                            <img className="user-info__avatar" src={noavatar(user.gid)}/>
+                            <div className="user-info__body">
+                                <p>{user.name}</p>
+                                <p>{user.email}</p>
+                            </div>
+                            <button className="button button-default" onClick={() => this.addContact(user)}>Добавить</button>
                         </div>
-                    )}
+                    ))}
                 </div>
             </Modal>
         )

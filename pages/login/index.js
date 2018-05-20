@@ -10,13 +10,13 @@ export default class LoginPage extends React.Component {
                     <meta charSet="utf-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>Kilogram Messenger</title>
-                    <link rel="stylesheet" href="/static/styles/login.css"/>
+                    <link rel="stylesheet" href="/styles/login.css"/>
                 </Head>
                 <main className="main">
                     <h1 className="main_hello">Hello!</h1>
                     <Link href="/auth">
                         <a>
-                            <button className="main_login">GitHub</button>
+                            <button className="main_login">Войти</button>
                         </a>
                     </Link>
                 </main>

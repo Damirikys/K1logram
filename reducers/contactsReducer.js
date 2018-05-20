@@ -16,12 +16,13 @@ export default (state: StateType = {}, { type, payload }: ActionType): StateType
 
     switch (type) {
         case actions.FETCH_ALL_SUCCESS:
-        case actions.ADD_SUCCESS:
-            return Object.assign(newState, payload)
-        case actions.ADD_FAILED:
-        case actions.REMOVE_FAILED:
             return payload
-        case actions.REMOVE_SUCCESS:
+        case actions.REMOVE_FAILED:
+            return Object.assign(newState, payload)
+        case actions.ADD_REQUEST:
+            return Object.assign(newState, payload.reduce((res, cur) => ({ ...res, [cur.gid]: cur }), {}))
+        case actions.ADD_FAILED:
+        case actions.REMOVE_REQUEST:
             payload.forEach(gid => delete newState[gid])
             return newState
         case actions.SOCKET_UPDATE_ACTION:

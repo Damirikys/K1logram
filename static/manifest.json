@@ -1,0 +1,8 @@
+{
+  "short_name": "K1logram",
+  "name": "K1logram Messenger by Team6",
+  "icons": [],
+  "start_url": "/",
+  "display": "standalone",
+  "gcm_sender_id": "103953800507"
+}

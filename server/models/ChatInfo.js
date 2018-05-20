@@ -1,16 +1,16 @@
 // @flow
 
 interface ChatInfoType {
-    id?: number,
-    name: string
+    name: string,
+    createdAt: number
 }
 
 export default class ChatInfo implements ChatInfoType {
-    id: number
     name: string
+    createdAt: number
 
-    constructor({ id = Date.now(), name }: ChatInfoType) {
-        this.id = id
+    constructor({ createdAt = Date.now(), name }: ChatInfoType) {
         this.name = name
+        this.createdAt = createdAt
     }
 }

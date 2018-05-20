@@ -1,46 +1,56 @@
 import React from 'react'
 import MembersIcon from 'react-icons/lib/md/group'
 import TitleIcon from 'react-icons/lib/md/local-offer'
-import { Dropdown } from 'semantic-ui-react'
+import ForwardIcon from 'react-icons/lib/fa/mail-forward'
 import Chat from '../server/models/Chat'
-import ChatAddMemberModal from './ChatAddMemberModal'
+import ChatMembersModal from './ChatMembersModal'
+import Message from '../server/models/Message'
 
 type Props = {
-    chat: Chat
+    title: string,
+    chat?: Chat,
+    selectedMessages: Message[],
+    forwardMessages: Function
 }
 
 type State = {
-    addMemberModalVisible: boolean
+    membersModalVisible: boolean
 }
 
 export default class ChatHeader extends React.Component<Props, State> {
-    state = { addMemberModalVisible: false }
+    state = { membersModalVisible: false }
 
-    onToggleAddMemberModal = () => {
-        this.setState({ addMemberModalVisible: !this.state.addMemberModalVisible })
+    toggleMembersModal = () => {
+        this.setState({ membersModalVisible: !this.state.membersModalVisible })
     }
 
     render() {
-        const { chat } = this.props
+        const { title, chat, selectedMessages } = this.props
         return (
             <div className="chat-info">
                 <p className="chat-info__name">
-                    <TitleIcon/> {chat.common.name}
+                    <TitleIcon/> {title}
                 </p>
-                <div className="chat-info__members">
-                    <MembersIcon/> {chat.members.length} участников
-                    <Dropdown className="chat-info__dropdown" icon="bars">
-                        <Dropdown.Menu>
-                            <Dropdown.Item onClick={this.onToggleAddMemberModal} text="Добавить участника"/>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                </div>
 
-                <ChatAddMemberModal
-                    chatId={chat.common.id}
-                    onClose={this.onToggleAddMemberModal}
-                    visible={this.state.addMemberModalVisible}
-                />
+                {selectedMessages.length > 0 && (
+                    <div className="chat-info__controls">
+                        <p onClick={this.props.forwardMessages}><ForwardIcon/> <span>{selectedMessages.length}</span></p>
+                    </div>
+                )}
+
+                {!selectedMessages.length && chat && (
+                    <div className="chat-info__members">
+                        <a href="#" onClick={this.toggleMembersModal}>
+                            <MembersIcon/> {chat.members.length} участников
+                        </a>
+
+                        <ChatMembersModal
+                            chatId={chat._id}
+                            onClose={this.toggleMembersModal}
+                            visible={this.state.membersModalVisible}
+                        />
+                    </div>
+                )}
             </div>
         )
     }

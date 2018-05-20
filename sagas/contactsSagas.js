@@ -1,46 +1,77 @@
-import { select, put, call, takeLatest } from 'redux-saga/effects'
-import { OK } from 'http-status-codes'
+import { select, put, takeLatest } from 'redux-saga/effects'
 
-import API from '../api'
-
+import { BASE_URL } from '../api'
 import * as actions from '../actions/contactsActions'
-
 import UserInfo from '../server/models/UserInfo'
 
 const fetchContacts = function * ({ payload } : {
     payload: Array<number>
 }) {
-    const contacts: Object = yield call(API.fetchContacts, payload)
-    yield put({ type: actions.FETCH_ALL_SUCCESS, payload: contacts })
+    yield put({
+        type: actions.FETCH_ALL_REQUEST,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/users`,
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                },
+                commit: {
+                    type: actions.FETCH_ALL_SUCCESS
+                }
+            }
+        }
+    })
 }
 
 const addContacts = function * ({ payload } : {
     payload: Array<UserInfo>
 }) {
-    const contacts: Object = yield select(state => state.contacts)
+    const gids: number[] = payload.map(x => x.gid)
+
     yield put({
-        type: actions.ADD_SUCCESS,
-        payload: payload.reduce((res, cur) => ({ ...res, [cur.gid]: cur }), {})
+        type: actions.ADD_REQUEST,
+        payload, meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/contacts`,
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: JSON.stringify(gids)
+                },
+                rollback: {
+                    type: actions.ADD_FAILED,
+                    payload: gids
+                }
+            }
+        }
     })
-
-    const response = yield call(API.addContacts, payload.map(x => x.gid))
-
-    if (response.status !== OK) {
-        yield put({ type: actions.ADD_FAILED, payload: contacts })
-    }
 }
 
 const removeContacts = function * ({ payload } : {
     payload: Array<number>
 }) {
     const contacts: Object = yield select(state => state.contacts)
-    yield put({ type: actions.REMOVE_SUCCESS, payload })
+    const roolback: Object = Object.values(contacts).filter(x => payload.includes(x))
 
-    const response = yield call(API.removeContacts, payload)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.REMOVE_FAILED, payload: contacts })
-    }
+    yield put({
+        type: actions.REMOVE_REQUEST,
+        payload, meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/contacts`,
+                    method: 'DELETE',
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                },
+                rollback: {
+                    type: actions.REMOVE_FAILED,
+                    payload: roolback
+                }
+            }
+        }
+    })
 }
 
 const contactsSagas = function * () {

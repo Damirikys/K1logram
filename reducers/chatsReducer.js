@@ -17,30 +17,32 @@ export default (state: StateType = {}, { type, payload }: ActionType): StateType
 
     switch (type) {
         case actions.FETCH_ALL_SUCCESS:
-        case actions.CREATE_FAILED:
-        case actions.REMOVE_FAILED:
-        case actions.UPDATE_FAILED:
-        case actions.ADD_MEMBER_FAILED:
-        case actions.REMOVE_MEMBER_FAILED:
             return payload
         case actions.FETCH_SUCCESS:
-        case actions.CREATE_SUCCESS:
+        case actions.CREATE_REQUEST:
+        case actions.REMOVE_FAILED:
         case actions.SOCKET_UPDATE_ACTION:
-            newState[payload.common.id] = payload
+            newState[payload._id] = payload
             return newState
-        case actions.REMOVE_SUCCESS:
-            delete newState[payload.common.id]
-            return newState
+        case actions.CREATE_FAILED:
+        case actions.REMOVE_REQUEST:
         case actions.SOCKET_REMOVE_ACTION:
             delete newState[payload]
             return newState
-        case actions.UPDATE_SUCCESS:
+        case actions.UPDATE_REQUEST:
+        case actions.UPDATE_FAILED:
             newState[payload.id].common = payload
             return newState
-        case actions.ADD_MEMBER_SUCCESS:
-            newState[payload.chatId].members.push(payload.gid)
-            return newState
-        case actions.REMOVE_MEMBER_SUCCESS:
+        case actions.ADD_MEMBER_REQUEST:
+        case actions.REMOVE_MEMBER_FAILED:
+            if (newState[payload.chatId]) {
+                newState[payload.chatId].members.push(payload.gid)
+                return newState
+            }
+
+            return state
+        case actions.REMOVE_MEMBER_REQUEST:
+        case actions.ADD_MEMBER_FAILED:
             newState[payload.chatId].members = newState[payload.chatId]
                 .members.filter(gid => gid !== payload.gid)
 

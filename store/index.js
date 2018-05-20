@@ -3,6 +3,8 @@
 import { applyMiddleware, createStore, Store, Middleware } from 'redux'
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga'
 import { composeWithDevTools } from 'redux-devtools-extension'
+import { offline } from '@redux-offline/redux-offline'
+import defaultConfig from '@redux-offline/redux-offline/lib/defaults'
 
 import rootReducer from '../reducers'
 import { rootSaga } from '../sagas'
@@ -17,7 +19,11 @@ export default (): Store => {
     const sagaMiddleware: SagaMiddleware = createSagaMiddleware()
     const middleware: Middleware = composeWithDevTools(applyMiddleware(sagaMiddleware))
 
-    reduxStore = createStore(rootReducer, middleware)
+    reduxStore = offline({ ...defaultConfig,
+        persistOptions: {
+            blacklist: ['ui', 'forwarded']
+        }
+    })(createStore)(rootReducer, middleware)
 
     sagaMiddleware.run(rootSaga)
 

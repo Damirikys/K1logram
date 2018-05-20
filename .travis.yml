@@ -1,0 +1,8 @@
+language: node_js
+node_js: node
+cache: npm
+install:
+  - npm install --only=dev
+  - npm install --only=prod
+script:
+  - npm run lint

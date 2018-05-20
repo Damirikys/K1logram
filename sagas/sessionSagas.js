@@ -1,11 +1,11 @@
-import {put, call, takeLatest, all, select} from 'redux-saga/effects'
-import { OK } from 'http-status-codes'
-
-import API from '../api'
+import { put, takeLatest, all, select } from 'redux-saga/effects'
+import { BASE_URL } from '../api'
 
 import * as userActions from '../actions/userActions'
 import * as contactsActions from '../actions/contactsActions'
 import * as chatsActions from '../actions/chatsActions'
+
+import { socketClient } from '../components/Body'
 
 import { types } from '../server/models/SocketEvent'
 import { dispatch } from '../store'
@@ -15,15 +15,50 @@ import UserInfo from '../server/models/UserInfo'
 import Chat from '../server/models/Chat'
 import Event from '../server/models/Event'
 
-const fetchSelf = function * ({ payload: socket }) {
-    const profile: UserProfile = yield call(API.fetchSelf)
+const prepareInvite = function * ({ payload, invite: chatId } : {
+    payload: UserProfile,
+    chatId: number
+}) {
+    if (chatId && !payload.chats.includes(chatId)) {
+        yield put({
+            type: chatsActions.ADD_MEMBER_ACTION,
+            payload: { chatId, gid: payload.user.gid }
+        })
+    }
+}
+
+const fetchSelf = function * ({ payload }) {
+    yield put({
+        type: userActions.FETCH_PROFILE_REQUEST,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/user`,
+                    method: 'GET',
+                    credentials: 'include'
+                },
+                commit: {
+                    type: userActions.FETCH_PROFILE_SUCCESS,
+                    invite: payload
+                }
+            }
+        }
+    })
+}
+
+const socketInit = function * ({ fromSocket, payload: profile }) {
+    if (fromSocket) {
+        return
+    }
+
+    const socket = socketClient()
 
     socket.emit('connect_auth', profile)
 
     socket.on(types.USER_UPDATE, (profile: UserProfile) => {
         socket.emit('connect_auth', profile)
 
-        dispatch({ type: userActions.FETCH_PROFILE_SUCCESS, payload: profile })
+        dispatch({ type: userActions.FETCH_PROFILE_SUCCESS, payload: profile, fromSocket: true })
         dispatch({ type: contactsActions.FETCH_ALL_ACTION, payload: profile.contacts })
         dispatch({ type: chatsActions.FETCH_ALL_ACTION, payload: profile.chats })
     })
@@ -34,6 +69,7 @@ const fetchSelf = function * ({ payload: socket }) {
 
     socket.on(types.CHAT_UPDATE, (payload: Chat) => {
         dispatch({ type: chatsActions.SOCKET_UPDATE_ACTION, payload })
+        dispatch({ type: chatsActions.FETCH_MEMBERS_ACTION, payload: payload.members })
     })
 
     socket.on(types.CHAT_REMOVE, (payload: number) => {
@@ -45,7 +81,6 @@ const fetchSelf = function * ({ payload: socket }) {
     })
 
     yield all([
-        put({ type: userActions.FETCH_PROFILE_SUCCESS, payload: profile }),
         put({ type: contactsActions.FETCH_ALL_ACTION, payload: profile.contacts }),
         put({ type: chatsActions.FETCH_ALL_ACTION, payload: profile.chats })
     ])
@@ -57,17 +92,29 @@ const updateSelf = function * ({ payload } : {
     const user: UserInfo = yield select(state => state.session.user)
     payload.gid = user.gid
 
-    yield put({ type: userActions.UPDATE_USER_SUCCESS, payload })
-
-    const response = yield call(API.updateSelf, payload)
-
-    if (response.status !== OK) {
-        yield put({ type: userActions.UPDATE_USER_FAILED, payload: user })
-    }
+    yield put({
+        type: userActions.UPDATE_USER_REQUEST,
+        payload, meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/user`,
+                    method: 'PATCH',
+                    credentials: 'include',
+                    body: JSON.stringify(user)
+                },
+                rollback: {
+                    type: userActions.UPDATE_USER_FAILED,
+                    payload: user
+                }
+            }
+        }
+    })
 }
 
 const sessionSagas = function * () {
     yield takeLatest(userActions.FETCH_PROFILE_ACTION, fetchSelf)
+    yield takeLatest(userActions.FETCH_PROFILE_SUCCESS, socketInit)
+    yield takeLatest(userActions.FETCH_PROFILE_SUCCESS, prepareInvite)
     yield takeLatest(userActions.UPDATE_USER_ACTION, updateSelf)
 }
 

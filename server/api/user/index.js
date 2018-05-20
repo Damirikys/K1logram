@@ -1,20 +1,24 @@
 // @flow
 
-import * as hrudb from '../hrudb'
+import Identicon from 'identicon.js'
+
 import UserProfile from '../../models/UserProfile'
 import SocketEvent, { types } from '../../models/SocketEvent'
-import Identicon from 'identicon.js'
+import { userModel, avatarsModel, pushTokensModel } from '../mongodb'
 
 import socketManager from '../../socket'
 
 export default class UserAPI {
-    static async fetch(gid: number): Promise<UserProfile> {
-        const userRaw: string = await hrudb.get(`user${gid}`)
-        return JSON.parse(userRaw)
+    static fetch(gid: number): Promise<UserProfile> {
+        return userModel.get(gid)
     }
 
-    static async update(profile: UserProfile, broadcast?: boolean): Promise<void> {
-        return hrudb.update(`user${profile.user.gid}`, JSON.stringify(profile)).then(() => {
+    static fetchBy(key: string, query: string, options?: Object = { limit: 10, offset: 0 }): Promise<Array<UserProfile>> {
+        return userModel.findAll(key, query, options)
+    }
+
+    static update(profile: UserProfile, broadcast?: boolean): Promise<void> {
+        return userModel.updateOrCreate(profile.user.gid, profile).then(() => {
             socketManager.sendEvent(`session_${profile.user.gid}`, new SocketEvent(types.USER_UPDATE, profile))
 
             if (broadcast) {
@@ -25,11 +29,34 @@ export default class UserAPI {
         })
     }
 
-    static getAvatar(gid: string): Buffer {
-        gid = (Number(gid) * Math.pow(10, (15 - gid.length))).toString()
-        const img = 'data:image/jpg;base64,' + new Identicon(gid, 150).toString()
-        const data = img.replace(/^data:image\/\w+;base64,/, '')
+    static async getAvatar(gid: string): Promise<Buffer> {
+        try {
+            const { data } = await avatarsModel.get(Number(gid), true)
+            return Buffer.from(data, 'base64')
+        } catch (e) {
+            gid = (Math.pow(Number(gid), (Math.floor(Math.sqrt(15 - gid.length))))).toString()
+            const img = 'data:image/jpg;base64,' + new Identicon(gid, 150).toString()
+            const data = img.replace(/^data:image\/\w+;base64,/, '')
+            return Buffer.from(data, 'base64')
+        }
+    }
 
-        return Buffer.from(data, 'base64')
+    static async uploadAvatar(gid: string, files: Object) {
+        if (!files.avatar || files.avatar.truncated) {
+            throw new Error('No file or size of file so large')
+        }
+
+        return avatarsModel.updateOrCreate(Number(gid), {
+            _id: Number(gid),
+            data: files.avatar.data.toString('base64')
+        })
+    }
+
+    static getPushTokens(gid: number): Promise<Object> {
+        return pushTokensModel.get(gid)
+    }
+
+    static updatePushTokens(gid: number, tokens: string[]): Promise<void> {
+        return pushTokensModel.updateOrCreate(gid, { _id: gid, tokens })
     }
 }

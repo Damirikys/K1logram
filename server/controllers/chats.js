@@ -1,6 +1,6 @@
 // @flow
 
-import { OK, NOT_FOUND, INTERNAL_SERVER_ERROR } from 'http-status-codes'
+import { OK, NOT_FOUND, INTERNAL_SERVER_ERROR, NOT_MODIFIED } from 'http-status-codes'
 
 import ChatsAPI from '../api/chats'
 import UserAPI from '../api/user'
@@ -28,7 +28,7 @@ export const fetchAllChats = async ({ body: ids }: {
     try {
         const fetchedChats: Array<Chat> = await Promise.all(ids.map(ChatsAPI.fetch))
         const response: Object = fetchedChats.filter(x => Boolean(x))
-            .reduce((result, chat) => ({ ...result, [chat.common.id]: chat }), {})
+            .reduce((result, chat) => ({ ...result, [chat._id]: chat }), {})
 
         return res.status(OK).json(response)
     } catch (e) {
@@ -47,12 +47,8 @@ export const createChat = async ({ user, body: chat }: {
         const assignChatToMembers: Promise<void[]> = Promise.all(
             chat.members.map(gid => UserAPI.fetch(gid)
                 .then(profile => {
-                    const index = profile.chats.findIndex(id => id === chat.common.id)
-
-                    if (index === -1) {
-                        profile.chats.push(chat.common.id)
-                    } else {
-                        profile.chats[index] = chat.common.id
+                    if (!profile.chats.includes(chat._id)) {
+                        profile.chats.push(chat._id)
                     }
 
                     return UserAPI.update(profile)
@@ -62,7 +58,7 @@ export const createChat = async ({ user, body: chat }: {
 
         await Promise.all([ChatsAPI.update(chat), assignChatToMembers])
 
-        user.chats.push(chat.common.id)
+        user.chats.push(chat._id)
 
         return res.sendStatus(OK)
     } catch (e) {
@@ -92,10 +88,14 @@ export const addMemberToChat = async ({ params: { id }, body: { gid } }: {
 }, res: Object) => {
     try {
         const chat: Chat = await ChatsAPI.fetch(Number(id))
+        if (chat.members.includes(gid)) {
+            return res.sendStatus(NOT_MODIFIED)
+        }
+
         chat.members = [...chat.members, gid]
 
         const profileUpdate: Promise<void> = UserAPI.fetch(gid).then(profile => {
-            profile.chats.push(chat.common.id)
+            profile.chats.push(chat._id)
             return UserAPI.update(profile)
         })
 
@@ -116,7 +116,7 @@ export const deleteMemberFromChat = async ({ params: { id }, body: { gid } }: {
         chat.members = chat.members.filter(member => member !== gid)
 
         const profileUpdate: Promise<void> = UserAPI.fetch(gid).then(profile => {
-            profile.chats = profile.chats.filter(chatId => chatId !== chat.common.id)
+            profile.chats = profile.chats.filter(chatId => chatId !== chat._id)
 
             return UserAPI.update(profile)
         })
@@ -136,7 +136,7 @@ export const deleteChat = async ({ user, params: { id } }: {
     try {
         const chat: Chat = await ChatsAPI.fetch(Number(id))
 
-        const isNotRemovedChat = id => id !== chat.common.id
+        const isNotRemovedChat = id => id !== chat._id
 
         const removeChatFromUserProfile = async (gid: number): Promise<void> => {
             const profile: UserProfile = await UserAPI.fetch(gid)
@@ -146,7 +146,7 @@ export const deleteChat = async ({ user, params: { id } }: {
         }
 
         await Promise.all([
-            ChatsAPI.delete(chat.common.id),
+            ChatsAPI.delete(chat._id),
             ...chat.members.map(removeChatFromUserProfile)
         ])
 

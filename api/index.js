@@ -1,6 +1,7 @@
 // @flow
 
 import fetch from 'isomorphic-unfetch'
+import FormData from 'form-data'
 
 import UserProfile from '../server/models/UserProfile'
 import UserInfo from '../server/models/UserInfo'
@@ -8,8 +9,8 @@ import Chat from '../server/models/Chat'
 import ChatInfo from '../server/models/ChatInfo'
 import Message from '../server/models/Message'
 
-const BASE_URL = '/api/v1'
-const BASE_OPTIONS = {
+export const BASE_URL = '/api/v1'
+export const BASE_OPTIONS = {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -34,6 +35,11 @@ export default class APIClient {
             body: JSON.stringify(gids)
         })
 
+        return response.json()
+    }
+
+    static async findContacts(name: string): Promise<Array<UserInfo>> {
+        const response = await fetch(`${BASE_URL}/contacts?name=${name}`, BASE_OPTIONS)
         return response.json()
     }
 
@@ -141,5 +147,16 @@ export default class APIClient {
         })
 
         return response.json()
+    }
+
+    static async uploadAvatar(gid: number, image: Object): Promise<Object> {
+        const formData: FormData = new FormData()
+        formData.append('avatar', image)
+
+        return fetch(`${BASE_URL}/user/${gid}/avatar`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        })
     }
 }

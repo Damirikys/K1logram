@@ -1,4 +1,5 @@
 import * as actions from '../actions/chatsActions'
+import * as contactsActions from '../actions/contactsActions'
 
 import UserInfo from '../server/models/UserInfo'
 
@@ -14,6 +15,7 @@ type ActionType = {
 export default (state: StateType = {}, { type, payload }: ActionType): StateType => {
     switch (type) {
         case actions.FETCH_MEMBERS_SUCCESS:
+        case contactsActions.FETCH_ALL_SUCCESS:
             return {...state, ...payload}
         default:
             return state

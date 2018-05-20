@@ -2,6 +2,10 @@
   "extends": ["plugin:react/recommended", "xo/esnext"],
   "plugins": ["flowtype"],
   "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true
+  },
   "rules": {
     "semi": [2, "never"],
     "new-cap": 0,

@@ -1,7 +1,6 @@
-import {put, call, takeLatest, select} from 'redux-saga/effects'
-import { OK } from 'http-status-codes'
+import { put, takeLatest, select } from 'redux-saga/effects'
 
-import API from '../api'
+import { BASE_URL } from '../api'
 
 import * as actions from '../actions/chatsActions'
 
@@ -12,68 +11,144 @@ import ChatInfo from '../server/models/ChatInfo'
 const fetchChats = function * ({ payload } : {
     payload: Array<number>
 }) {
-    const chats: Object = yield call(API.fetchChats, payload)
-    yield put({ type: actions.FETCH_ALL_SUCCESS, payload: chats })
+    yield put({
+        type: actions.FETCH_ALL_REQUEST,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chats`,
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                },
+                commit: {
+                    type: actions.FETCH_ALL_SUCCESS
+                }
+            }
+        }
+    })
+}
 
+const fetchMembersFromChats = function * ({ payload: chats }) {
     const membersMap = Object.values(chats).reduce((res, cur: Chat) => {
         cur.members.forEach(gid => res[gid] = true)
         return res
     }, {})
 
-    const members: Object = yield call(API.fetchContacts, Object.keys(membersMap))
-    yield put({ type: actions.FETCH_MEMBERS_SUCCESS, payload: members })
+    yield put({ type: actions.FETCH_MEMBERS_ACTION, payload: Object.keys(membersMap) })
+}
+
+const fetchMembers = function * ({ payload }) {
+    yield put({
+        type: actions.FETCH_MEMBERS_REQUEST,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/users`,
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                },
+                commit: {
+                    type: actions.FETCH_MEMBERS_SUCCESS
+                }
+            }
+        }
+    })
 }
 
 const fetchChat = function * ({ payload } : {
     payload: number
 }) {
-    const chat: Chat = yield call(API.fetchChat, payload)
-    yield put({ type: actions.FETCH_SUCCESS, payload: chat })
+    yield put({
+        type: actions.FETCH_REQUEST,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chats/${payload}`,
+                    method: 'GET',
+                    credentials: 'include'
+                },
+                commit: {
+                    type: actions.FETCH_SUCCESS
+                }
+            }
+        }
+    })
 }
 
 const createChat = function * ({ payload: chat } : {
-    chat: Chat,
-    payload: Chat
+    chat: Chat
 }) {
-    const chats: Object = yield select(state => state.chats)
     const user: UserInfo = yield select(state => state.session.user)
     chat.setOwner(user.gid)
 
-    yield put({ type: actions.CREATE_SUCCESS, payload: chat })
-
-    const response = yield call(API.createChat, chat)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.CREATE_FAILED, payload: chats })
-    }
+    yield put({
+        type: actions.CREATE_REQUEST,
+        payload: chat,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chats`,
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: JSON.stringify(chat)
+                },
+                rollback: {
+                    type: actions.CREATE_FAILED,
+                    payload: chat._id
+                }
+            }
+        }
+    })
 }
 
 const removeChat = function * ({ payload: chat } : {
-    chat: Chat,
-    payload: Chat
+    chat: Chat
 }) {
-    const chats: Object = yield select(state => state.chats)
-    yield put({ type: actions.REMOVE_SUCCESS, payload: chat })
-
-    const response = yield call(API.removeChat, chat.common.id)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.REMOVE_FAILED, payload: chats })
-    }
+    yield put({
+        type: actions.REMOVE_REQUEST,
+        payload: chat._id,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chat/${chat._id}`,
+                    method: 'DELETE',
+                    credentials: 'include'
+                },
+                rollback: {
+                    type: actions.REMOVE_FAILED,
+                    payload: chat
+                }
+            }
+        }
+    })
 }
 
 const updateChatInfo = function * ({ payload: chatInfo } : {
-    chatInfo: ChatInfo,
-    payload: ChatInfo
+    chatInfo: ChatInfo
 }) {
     const chats: Object = yield select(state => state.chats)
-    yield put({ type: actions.UPDATE_SUCCESS, payload: chatInfo })
+    const chatInfoRollback: ChatInfo = chats[chatInfo.id].common
 
-    const response = yield call(API.updateChatInfo, chatInfo)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.UPDATE_FAILED, payload: chats })
-    }
+    yield put({
+        type: actions.UPDATE_REQUEST,
+        payload: chatInfo,
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chat`,
+                    method: 'PATCH',
+                    credentials: 'include',
+                    body: JSON.stringify(chatInfo)
+                },
+                rollback: {
+                    type: actions.UPDATE_FAILED,
+                    payload: chatInfoRollback
+                }
+            }
+        }
+    })
 }
 
 const addMemberToChat = function * ({ payload: { chatId, gid } } : {
@@ -82,14 +157,24 @@ const addMemberToChat = function * ({ payload: { chatId, gid } } : {
         gid: number
     }
 }) {
-    const chats: Object = yield select(state => state.chats)
-    yield put({ type: actions.ADD_MEMBER_SUCCESS, payload: { chatId, gid } })
-
-    const response = yield call(API.addMemberToChat, chatId, gid)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.ADD_MEMBER_FAILED, payload: chats })
-    }
+    yield put({
+        type: actions.ADD_MEMBER_REQUEST,
+        payload: { chatId, gid },
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chat/${chatId}/members`,
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: JSON.stringify({ gid })
+                },
+                rollback: {
+                    type: actions.ADD_MEMBER_FAILED,
+                    payload: { chatId, gid }
+                }
+            }
+        }
+    })
 }
 
 const removeMemberFromChat = function * ({ payload: { chatId, gid } } : {
@@ -98,18 +183,30 @@ const removeMemberFromChat = function * ({ payload: { chatId, gid } } : {
         gid: number
     }
 }) {
-    const chats: Object = yield select(state => state.chats)
-    yield put({ type: actions.REMOVE_MEMBER_SUCCESS, payload: { chatId, gid } })
-
-    const response = yield call(API.removeMemberFromChat, chatId, gid)
-
-    if (response.status !== OK) {
-        yield put({ type: actions.REMOVE_MEMBER_FAILED, payload: chats })
-    }
+    yield put({
+        type: actions.REMOVE_MEMBER_REQUEST,
+        payload: { chatId, gid },
+        meta: {
+            offline: {
+                effect: {
+                    url: `${BASE_URL}/chat/${chatId}/members`,
+                    method: 'DELETE',
+                    credentials: 'include',
+                    body: JSON.stringify({ gid })
+                },
+                rollback: {
+                    type: actions.REMOVE_MEMBER_FAILED,
+                    payload: { chatId, gid }
+                }
+            }
+        }
+    })
 }
 
 const chatsSagas = function * () {
     yield takeLatest(actions.FETCH_ALL_ACTION, fetchChats)
+    yield takeLatest(actions.FETCH_ALL_SUCCESS, fetchMembersFromChats)
+    yield takeLatest(actions.FETCH_MEMBERS_ACTION, fetchMembers)
     yield takeLatest(actions.FETCH_ACTION, fetchChat)
     yield takeLatest(actions.CREATE_ACTION, createChat)
     yield takeLatest(actions.REMOVE_ACTION, removeChat)

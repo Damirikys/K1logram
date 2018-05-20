@@ -12,8 +12,11 @@ router.post('/users', profile.fetchAllUsers)
 router.get('/user/:gid', profile.fetchUser)
 router.patch('/user', profile.updateUser)
 router.get('/user/:gid/avatar', profile.getAvatar)
+router.post('/user/:gid/avatar', profile.uploadAvatar)
+router.get('/user/:token/push', profile.attachFcmToken)
 
 /* Contacts API */
+router.get('/contacts', profile.findContactByName)
 router.put('/contacts', profile.addContacts)
 router.delete('/contacts', profile.removeContacts)
 
@@ -33,5 +36,6 @@ router.put('/messages/:chatId', messages.addMessage)
 router.patch('/messages', messages.editMessage)
 router.delete('/messages', messages.deleteMessage)
 router.post('/messages/meta', messages.getMeta)
+router.post('/messages/image', messages.uploadImage)
 
 export default router

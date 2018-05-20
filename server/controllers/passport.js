@@ -8,8 +8,6 @@ export const serializeUser = async ({ _json }: Object, serialize: Function) => {
     try {
         serialize(null, await UserAPI.fetch(_json.id))
     } catch (e) {
-        console.log('ERROR USER NOT FOUND!!!!!')
-        console.log(e)
         const user: UserProfile = new UserProfile({
             user: new UserInfo({
                 gid: _json.id,
